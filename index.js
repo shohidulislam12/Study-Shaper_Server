@@ -27,6 +27,7 @@ async function run() {
 
 const usercollection=client.db('studyweb').collection('user')
 const sessionCollection=client.db('studyweb').collection('allsession')
+const notescollection=client.db('studyweb').collection('notes')
 
 
 
@@ -101,6 +102,14 @@ app.get('/allsession/:email',async(req,res)=>{
   const result=await sessionCollection.find(query).toArray()
   res.send(result)
 })
+//get single data for session 
+app.get('/session/:id',async(req,res)=>{
+  const id=req.params.id
+  const query ={_id:new ObjectId(id)}
+  const result=await sessionCollection.findOne(query)
+  console.log("ID",id)
+  res.send(result)
+})
 // update status session
 app.patch('/updatestatus/:id',async(req,res)=>{
   const id=req.params.id
@@ -115,6 +124,53 @@ app.patch('/updatestatus/:id',async(req,res)=>{
   const result=await sessionCollection.updateOne(query,updateDoc)
   res.send(result)
 })
+//creat note 
+app.post('/creatnote',async(req,res)=>{
+  const note=req.body
+  const result=await notescollection.insertOne(note) 
+  res.send(result)
+})
+//creat note 
+app.get('/getnote/:email',async(req,res)=>{
+  const email=req.params.email
+  const query={email}
+
+  const result=await notescollection.find(query).toArray()
+  res.send(result)
+})
+//delete note 
+app.delete('/deletenote/:id',async(req,res)=>{
+  const id=req.params.id 
+  const query={_id:new ObjectId(id)}
+  const result =await notescollection.deleteOne(query)
+  res.send(result)
+})
+//get note by id
+app.get('/getssnote/:id',async(req,res)=>{
+  const id=req.params.id 
+  console.log(id)
+  const query={_id:new ObjectId(id)}
+  const result =await notescollection.findOne(query)
+  res.send(result)
+})
+//update notes
+app.patch('/updatenote/:id',async(req,res)=>{
+  const id=req.params.id 
+  const data=req.body
+  console.log(id)
+  const query={_id:new ObjectId(id)}
+  const updateDoc= {
+      $set:{
+        title:data.title,
+        description:data.description
+
+        }
+    }
+  
+  const result =await notescollection.updateOne(query,updateDoc)
+  res.send(result)
+})
+
 
 
     // Send a ping to confirm a successful connection
