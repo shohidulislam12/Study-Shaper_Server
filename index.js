@@ -8,7 +8,7 @@ app.use(express.json())
 const port=process.env.PORT||3000
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.mq5kn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -99,6 +99,20 @@ app.get('/allsession/:email',async(req,res)=>{
     tutorEmail:email
     }
   const result=await sessionCollection.find(query).toArray()
+  res.send(result)
+})
+// update status session
+app.patch('/updatestatus/:id',async(req,res)=>{
+  const id=req.params.id
+  const {status}=req.body
+  const query ={
+    _id: new ObjectId(id)
+    }
+    const updateDoc={
+      $set:{status:status}
+    }
+    console.log(status)
+  const result=await sessionCollection.updateOne(query,updateDoc)
   res.send(result)
 })
 
