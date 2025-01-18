@@ -28,6 +28,7 @@ async function run() {
 const usercollection=client.db('studyweb').collection('user')
 const sessionCollection=client.db('studyweb').collection('allsession')
 const notescollection=client.db('studyweb').collection('notes')
+const materialscollection=client.db('studyweb').collection('materials')
 
 
 
@@ -107,7 +108,7 @@ app.get('/session/:id',async(req,res)=>{
   const id=req.params.id
   const query ={_id:new ObjectId(id)}
   const result=await sessionCollection.findOne(query)
-  console.log("ID",id)
+
   res.send(result)
 })
 // update status session
@@ -171,6 +172,18 @@ app.patch('/updatenote/:id',async(req,res)=>{
   res.send(result)
 })
 
+// all material 
+app.post('/allmaterial',async(req,res)=>{
+  const materail=req.body
+  const result= await materialscollection.insertOne(materail)
+  res.send(result)
+})
+//get material 
+app.get('/allmaterial',async(req,res)=>{
+ 
+  const result= await materialscollection.find().toArray()
+  res.send(result)
+})
 
 
     // Send a ping to confirm a successful connection
