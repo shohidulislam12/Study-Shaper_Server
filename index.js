@@ -179,11 +179,37 @@ app.post('/allmaterial',async(req,res)=>{
   res.send(result)
 })
 //get material 
-app.get('/allmaterial',async(req,res)=>{
- 
-  const result= await materialscollection.find().toArray()
+app.get('/allmaterial/:email',async(req,res)=>{
+ const email=req.params.email
+ const query={teacherEmail:email }
+  const result= await materialscollection.find(query).toArray()
   res.send(result)
 })
+app.delete('/deletematerial/:id',async(req,res)=>{
+ const id=req.params.id
+ const query={_id:new ObjectId(id) }
+  const result= await materialscollection.deleteOne(query)
+  res.send(result)
+})
+//get id material 
+app.get('/editmaterial/:id',async(req,res)=>{
+  const id=req.params.id
+  const query={_id:new ObjectId(id) }
+   const result= await materialscollection.findOne(query)
+   res.send(result)
+ })
+ app.put('/materialUpdate/:id',async(req,res)=>{
+  const materail=req.body
+  const id=req.params.id
+  const query={_id:new ObjectId(id) }
+
+  const updateDoc={
+    $set: materail, 
+  }
+  const result= await materialscollection.updateOne(query, updateDoc)
+  res.send(result)
+})
+
 
 
     // Send a ping to confirm a successful connection
