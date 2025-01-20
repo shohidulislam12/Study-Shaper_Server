@@ -30,6 +30,7 @@ async function run() {
     const notescollection = client.db("studyweb").collection("notes");
     const materialscollection = client.db("studyweb").collection("materials");
     const bookedcollection = client.db("studyweb").collection("booked");
+    const reviewcollection = client.db("studyweb").collection("review");
 
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -170,6 +171,11 @@ async function run() {
       const result = await materialscollection.insertOne(materail);
       res.send(result);
     });
+    app.get("/allmaterialadmin", async (req, res) => {
+    
+      const result = await materialscollection.find().toArray();
+      res.send(result);
+    });
     //get material
     app.get("/allmaterial/:email", async (req, res) => {
       const email = req.params.email;
@@ -276,6 +282,27 @@ async function run() {
 
       res.send(result);
     });
+
+//reviw collection
+app.post('/review',async(req,res)=>{
+  const reviewData=req.body
+  const result=await reviewcollection.insertOne(reviewData)
+  res.send(result)
+})
+app.get('/reviews/:id',async(req,res)=>{
+  
+  const id = req.params.id;
+  const filter = {sessionId: id };
+  const result=await reviewcollection.find(filter).toArray()
+  console.log(id)
+  res.send(result)
+})
+
+
+
+
+
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
