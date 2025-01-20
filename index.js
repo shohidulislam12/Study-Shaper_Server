@@ -6,7 +6,7 @@ require('dotenv').config()
 app.use(cors())
 app.use(express.json())
 const port=process.env.PORT||3000
-
+const stripe = require('stripe')(process.env.STRIPE_KYE)
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.mq5kn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -115,11 +115,13 @@ app.get('/session/:id',async(req,res)=>{
 app.patch('/updatestatus/:id',async(req,res)=>{
   const id=req.params.id
   const {status}=req.body
+  const {type}=req.body
+  const {registrationFee}=req.body
   const query ={
     _id: new ObjectId(id)
     }
     const updateDoc={
-      $set:{status:status}
+      $set:{status:status,registrationFee:registrationFee}
     }
     console.log(status)
   const result=await sessionCollection.updateOne(query,updateDoc)
@@ -209,6 +211,35 @@ app.get('/editmaterial/:id',async(req,res)=>{
   const result= await materialscollection.updateOne(query, updateDoc)
   res.send(result)
 })
+//creat payment intent
+app.post('/creatpayment-intent', async (req, res) => {
+  const { sessionid, registrationFee } = req.body;
+
+
+  if (!registrationFee) {
+    return
+   
+  }
+  const registrationFee2 = parseInt(registrationFee);
+  const  sessionFee = registrationFee2 * 100; // Update 'sessionFee'
+  const {client_secret} = await stripe.paymentIntents.create({
+    amount: sessionFee,
+    currency: 'usd',
+    automatic_payment_methods: {
+      enabled: true,
+    },
+  });
+
+  res.send({client_secret:client_secret})
+});
+
+
+
+
+
+
+
+
 
 
 
