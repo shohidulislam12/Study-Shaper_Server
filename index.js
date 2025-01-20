@@ -29,6 +29,7 @@ const usercollection=client.db('studyweb').collection('user')
 const sessionCollection=client.db('studyweb').collection('allsession')
 const notescollection=client.db('studyweb').collection('notes')
 const materialscollection=client.db('studyweb').collection('materials')
+const bookedcollection=client.db('studyweb').collection('booked')
 
 
 
@@ -61,12 +62,12 @@ res.send(result)
 })
 //all useres get 
 app.get('/users',async(req,res)=>{
-  const search=req.query.search
+  const search = req.query.search || '';
   console.log(search)
 
   let query={
     $or: [
-      {name:{$regex:search,$options:'i'}},
+      {name:{$regex:search,'$options':'i'}},
       {email:{$regex:search,$options:'i'}}
     ]
   }
@@ -233,8 +234,25 @@ app.post('/creatpayment-intent', async (req, res) => {
   res.send({client_secret:client_secret})
 });
 
-
-
+//store boking data from student
+app.post('/booked-data',async(req,res)=>{
+  const bookdata=req.body
+  const result=await bookedcollection.insertOne(bookdata)
+ res.send((result))
+ console.log(result)
+})
+app.get('/booked-data',async(req,res)=>{
+  const result=await bookedcollection.find().toArray()
+ res.send((result))
+ console.log(result)
+})
+// get booking data by email 
+app.get('/bookingdata/:email',async(req,res)=>{
+  const email=req.params.email
+  const query={studentEmail:email}
+  const result=await bookedcollection.find(query).toArray()
+  res.send(result)
+})
 
 
 
