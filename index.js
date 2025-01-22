@@ -111,6 +111,20 @@ res.send({admin})
       const result = await usercollection.find(query).toArray();
       res.send(result);
     });
+    //pagination tutor 
+    app.get('/alltutor',async(req,res)=>{
+      const query={role:'tutor'}
+      console.log(req.query)
+      const page=parseInt(req.query.page)
+      const size=parseInt(req.query.size)
+      console.log(page,size)
+      const totaltutor =await usercollection.find(query).toArray()
+      const tutors =await usercollection.find(query).skip(page*size).limit(size).toArray()
+      res.send({tutors,totaltutor})
+    })
+
+
+
     //update useres
     app.patch("/updateuserole/:email",verifyToken,verifyAdmin, async (req, res) => {
       const email = req.params.email;
@@ -133,6 +147,18 @@ res.send({admin})
       const result = await sessionCollection.find().toArray();
       res.send(result);
     });
+    app.get("/allapprovsession", async (req, res) => {
+      const query={ status:'approve'}
+      const page=parseInt(req.query.page)
+      const size=parseInt(req.query.size)
+console.log(page,size)
+const totalCount=await sessionCollection.find(query).toArray()
+      const result = await sessionCollection.find(query)
+      .skip(page*size).
+      limit(size).
+      toArray();
+      res.send({result,totalCount});
+    });
     app.get("/allsession/:email", async (req, res) => {
       const email = req.params.email;
       const query = {
@@ -154,12 +180,14 @@ res.send({admin})
       const id = req.params.id;
       const { status } = req.body;
       const { type } = req.body;
+      const { rejectreson } = req.body;
+     
       const { registrationFee } = req.body;
       const query = {
         _id: new ObjectId(id),
       };
       const updateDoc = {
-        $set: { status: status, registrationFee: registrationFee },
+        $set: { status: status, registrationFee: registrationFee,rejectreson },
       };
       console.log(status);
       const result = await sessionCollection.updateOne(query, updateDoc);
@@ -345,8 +373,12 @@ app.get('/reviews/:id',async(req,res)=>{
   res.send(result)
 })
 
-
-
+app.delete('/sessiondelete/:id',verifyToken,verifyAdmin,async(req,res)=>{
+const id=req.params.id
+const query={_id:new ObjectId(id)}
+const result=await sessionCollection.deleteOne(query)
+res.send(result)
+})
 
 
 
