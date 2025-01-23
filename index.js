@@ -23,7 +23,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+   // await client.connect();
 
     const usercollection = client.db("studyweb").collection("user");
     const sessionCollection = client.db("studyweb").collection("allsession");
@@ -98,7 +98,7 @@ res.send({admin})
       res.send(result);
     });
     //all useres get
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyToken,verifyAdmin, async (req, res) => {
       const search = req.query.search || "";
       console.log(search);
 
@@ -138,9 +138,14 @@ res.send({admin})
       res.send(result);
     });
     // all session
-    app.post("/allsession", async (req, res) => {
+    app.post("/allsession", verifyToken, async (req, res) => {
       const sesstiondata = req.body;
       const result = await sessionCollection.insertOne(sesstiondata);
+      res.send(result);
+    });
+    // all session admin show
+    app.get("/allsessionadmin",verifyToken,verifyAdmin, async (req, res) => {
+      const result = await sessionCollection.find({ status: { $ne: "reject" } }).toArray();
       res.send(result);
     });
     app.get("/allsession", async (req, res) => {
@@ -176,18 +181,18 @@ const totalCount=await sessionCollection.find(query).toArray()
       res.send(result);
     });
     // update status session
-    app.patch("/updatestatus/:id", async (req, res) => {
+    app.patch("/updatestatus/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const { status } = req.body;
       const { type } = req.body;
-      const { rejectreson } = req.body;
+      const { rejectreson,feedback } = req.body;
      
       const { registrationFee } = req.body;
       const query = {
         _id: new ObjectId(id),
       };
       const updateDoc = {
-        $set: { status: status, registrationFee: registrationFee,rejectreson },
+        $set: { status: status, registrationFee: registrationFee,rejectreson,    feedback:feedback },
       };
       console.log(status);
       const result = await sessionCollection.updateOne(query, updateDoc);
@@ -200,7 +205,7 @@ const totalCount=await sessionCollection.find(query).toArray()
       res.send(result);
     });
     //creat note
-    app.get("/getnote/:email", async (req, res) => {
+    app.get("/getnote/:email",verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email };
 
@@ -245,7 +250,7 @@ const totalCount=await sessionCollection.find(query).toArray()
       const result = await materialscollection.insertOne(materail);
       res.send(result);
     });
-    app.get("/allmaterialadmin", async (req, res) => {
+    app.get("/allmaterialadmin",verifyToken,verifyAdmin, async (req, res) => {
     
       const result = await materialscollection.find().toArray();
       res.send(result);
@@ -257,7 +262,7 @@ const totalCount=await sessionCollection.find(query).toArray()
       const result = await materialscollection.find(query).toArray();
       res.send(result);
     });
-    app.delete("/deletematerial/:id", async (req, res) => {
+    app.delete("/deletematerial/:id",verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await materialscollection.deleteOne(query);
@@ -270,7 +275,7 @@ const totalCount=await sessionCollection.find(query).toArray()
       const result = await materialscollection.findOne(query);
       res.send(result);
     });
-    app.put("/materialUpdate/:id", async (req, res) => {
+    app.put("/materialUpdate/:id", verifyToken, async (req, res) => {
       const materail = req.body;
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -282,7 +287,7 @@ const totalCount=await sessionCollection.find(query).toArray()
       res.send(result);
     });
     //creat payment intent
-    app.post("/creatpayment-intent", async (req, res) => {
+    app.post("/creatpayment-intent",  async (req, res) => {
       const { sessionid, registrationFee } = req.body;
 
       if (!registrationFee) {
@@ -310,6 +315,18 @@ const totalCount=await sessionCollection.find(query).toArray()
     });
     app.get("/booked-data", async (req, res) => {
       const result = await bookedcollection.find().toArray();
+      res.send(result);
+      console.log(result);
+    });
+    app.get("/booked-datachek", async (req, res) => {
+      const email=req.query.email
+      const id=req.query.id
+      console.log('bbook',email,id)
+      const query = {
+        studentEmail: email,
+        sessionId: id 
+    };
+      const result = await bookedcollection.find(query).toArray()
       res.send(result);
       console.log(result);
     });
@@ -342,8 +359,10 @@ const totalCount=await sessionCollection.find(query).toArray()
       const query = { studentEmail: email };
       const result = await bookedcollection
         .aggregate([
-        
-
+             
+          {
+            $match: query
+        },
           {
             $lookup: {
               from: "materials", // Name of the target collection
@@ -379,15 +398,21 @@ const query={_id:new ObjectId(id)}
 const result=await sessionCollection.deleteOne(query)
 res.send(result)
 })
+app.get('/tuotorprivet/:email',verifyToken,async(req,res)=>{
+  const email=req.params.email 
+  const query={email:email}
 
+  const result= await usercollection.findOne(query)
+  res.send(result)
+})
 
 
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
+   // await client.db("admin").command({ ping: 1 });
+    //console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+   // );
   } finally {
     // Ensures that the client will close when you finish/error
     //await client.close();
