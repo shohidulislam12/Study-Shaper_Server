@@ -429,6 +429,69 @@ app.get('/tuotorprivet/:email',verifyToken,async(req,res)=>{
   const result= await usercollection.findOne(query)
   res.send(result)
 })
+// overview 
+
+app.get("/dashboard-stats",verifyToken,verifyAdmin, async (req, res) => {
+ 
+      const totalUsers = await usercollection.countDocuments();
+      const totalsession = await sessionCollection.countDocuments();
+      const totalOrder = await bookedcollection.countDocuments();
+      const totalRevenue = await bookedcollection.aggregate([
+          { $group: { _id: null, total: { $sum: "$sessionFee" } } }
+      ]).toArray();
+
+      res.send({
+          totalUsers,
+          totalsession,
+          totalOrder,
+          totalRevenue: totalRevenue[0]?.total || 0
+      });
+
+});
+//student dashbord 
+app.get("/student-dashboard/:email",verifyToken, async (req, res) => {
+ 
+      const email = req.params.email;
+      const user = await usercollection.findOne({ email });
+
+      if (!user) {
+          return res.status(404).send({ error: "User not found" });
+      }
+
+      const bookCount = await bookedcollection.countDocuments({ 
+        studentEmail: email });
+      const noteCount = await notescollection.countDocuments({ 
+        email: email });
+console.log({ bookCount, noteCount })
+      res.send({ bookCount, noteCount });
+ 
+});
+
+app.get("/tutor-dashboard/:email",verifyToken, async (req, res) => {
+
+      const email = req.params.email;
+      const tutor = await usercollection.findOne({ email, role: "tutor" });
+
+      if (!tutor) {
+          return res.status(404).send({ error: "Tutor not found" });
+      }
+
+      const sessionCount = await sessionCollection.countDocuments({ 
+        tutorEmail: email });
+      const noteCount = await materialscollection.countDocuments({ 
+        teacherEmail: email });
+      const bookingCount = await bookedcollection.countDocuments({ 
+        TutorEmail: email });
+console.log({ sessionCount, noteCount, bookingCount });
+      res.send({ sessionCount, noteCount, bookingCount });
+  
+});
+//get all users 
+app.get('/allusercollection',verifyToken,async(req,res)=>{
+  const result=await usercollection.find().toArray()
+  res.send(result)
+})
+
 
 
 
