@@ -36,7 +36,7 @@ async function run() {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACESS_TOKEN_SECRET, {
         expiresIn: "1h",
-      });
+      }); 
       res.send({ token });
     });
     //verify token midlewire 
@@ -97,6 +97,15 @@ res.send({admin})
       const result = await usercollection.insertOne(user);
       res.send(result);
     });
+    // get custom user
+    app.get("/singleusers/:email", async (req, res) => {
+      const email=req.params.email
+      const query={email: email}
+
+      const result = await usercollection.findOne(query)
+      res.send(result);
+    });
+
     //all useres get
     app.get("/users", verifyToken,verifyAdmin, async (req, res) => {
       const search = req.query.search || "";
@@ -111,6 +120,21 @@ res.send({admin})
       const result = await usercollection.find(query).toArray();
       res.send(result);
     });
+    // update user
+    app.put("/updateProfile/:email", async (req, res) => {
+      const email = req.params.email;
+      const updatedInfo = req.body;
+  
+      const filter = { email: email };
+      const updateDoc = {
+          $set: updatedInfo
+      };
+  
+      const result = await usercollection.updateOne(filter, updateDoc);
+      res.send(result);
+  });
+  
+
     //pagination tutor 
     app.get('/alltutor',async(req,res)=>{
       const query={role:'tutor'}
